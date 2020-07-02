@@ -10,7 +10,7 @@
 #include <unistd.h>
 
 #define NLOOPS 200000
-#define BLKSIZE 512 * 100
+#define READSIZE 512 * 100
 
 double get_dtime(struct timeval tv)
 {
@@ -58,12 +58,12 @@ int main(int argc, char **argv)
 
     argparse(argc, argv);
 
-    char blkbuf[BLKSIZE];
+    char blkbuf[READSIZE];
 
     int fd = open("/dev/sda", O_RDONLY);
-    // int fd = open("/dev/sda", O_RDONLY|O_DIRECT);
+    // int fd = open("/dev/sda", O_RDONLY | O_DIRECT);
     // int fd = open("/dev/nvme0n1p3", O_RDONLY);
-    // int fd = open("/dev/nvme0n1p3", O_RDONLY|O_DIRECT);
+    // int fd = open("/dev/nvme0n1p3", O_RDONLY | O_DIRECT);
     if (fd < 0)
         perror_exit("open error");
 
@@ -73,7 +73,8 @@ int main(int argc, char **argv)
 
     for (int i = 0; i < NLOOPS; i++)
     {
-        read(fd, blkbuf, BLKSIZE);
+        if (read(fd, blkbuf, READSIZE) == -1)
+            perror_exit("read error");
         // lseek(fd, rand() % ssd_size, SEEK_SET);
     }
 
@@ -89,7 +90,7 @@ int main(int argc, char **argv)
     double sys_cpu = get_dtime(usg.ru_stime);
     double real = calc_elapsed(start_tv, end_tv);
     double waitio = real - user_cpu - sys_cpu;
-    double readdataMB = (double)BLKSIZE * NLOOPS * 1e-9;
+    double readdataMB = (double)READSIZE * NLOOPS * 1e-9;
     double throughput = (double)readdataMB / real; // Bytes/sec
     printf("%f,%f,%f,%f,%f,%f\n", real, user_cpu, sys_cpu, waitio, readdataMB, throughput);
 
