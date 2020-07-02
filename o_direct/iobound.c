@@ -58,10 +58,11 @@ int main(int argc, char **argv)
 
     argparse(argc, argv);
 
-    char blkbuf[READSIZE];
+    // char blkbuf[READSIZE];
+    static char blkbuf[READSIZE] __attribute__((__aligned__(512)));
 
-    int fd = open("/dev/sda", O_RDONLY);
-    // int fd = open("/dev/sda", O_RDONLY | O_DIRECT);
+    // int fd = open("/dev/sda", O_RDONLY);
+    int fd = open("/dev/sda", O_RDONLY | O_DIRECT);
     // int fd = open("/dev/nvme0n1p3", O_RDONLY);
     // int fd = open("/dev/nvme0n1p3", O_RDONLY | O_DIRECT);
     if (fd < 0)
