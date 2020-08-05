@@ -16,7 +16,7 @@
 #define SEQREADBUFGB 1
 #define SEQREADGB 10
 
-#define RANDBUFKB 4
+#define RANDBUFB 1
 #define RANDNREAD 50000
 
 double get_dtime(struct timeval tv)
@@ -67,7 +67,10 @@ void drop_raid_cache()
 
     close(fd);
 
-    system("sync; echo 1 > /proc/sys/vm/drop_caches");
+    if (system("sync; echo 1 > /proc/sys/vm/drop_caches") == 127)
+        perror_exit("drop page cache error");
+    else
+        printf("droped page cache\n");
 
     printf("droped RAID cache\n");
 }
@@ -115,7 +118,7 @@ void measure_rand_rps()
     struct timeval end_tv;
     struct timeval start_tv;
 
-    size_t bufbyte = RANDBUFKB * 1e3;
+    size_t bufbyte = RANDBUFB;
     char blkbuf[bufbyte];
     int fd = open(HDDFILE, O_RDONLY);
 
@@ -135,7 +138,7 @@ void measure_rand_rps()
     for (i = 0; i < nloops; i++)
     {
         lseek(fd, rand() % read_area, SEEK_SET);
-        if (read(fd, blkbuf, RANDBUFKB) == -1)
+        if (read(fd, blkbuf, RANDBUFB) == -1)
             perror_exit("read error");
     }
     gettimeofday(&end_tv, NULL);
